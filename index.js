@@ -4,6 +4,7 @@ const app = express()
 
 app.use(express.json())
 
+const MAX_ID = 10000
 let persons = [
     {
         "id": 1,
@@ -37,16 +38,28 @@ app.get('/', (req, res) => {
 })
 
 app.get('/info', (req, res) => {
-    const current_date = new Date()
-    console.log(current_date)
+    const currentDate = new Date()
+    console.log(currentDate)
     response_html = `<p>Phonebook has info for ${persons.length} people</p>
-                    <p>${current_date}</p>`
+                    <p>${currentDate}</p>`
     res.send(response_html)
 })
 
 app.get('/api/persons', (req, res) => {
     console.log('sup')
     res.json(persons)
+})
+
+app.post('/api/persons', (req, res) => {
+    const reqData = req.body
+    const person = {
+        "id": getRandomInt(MAX_ID),
+        "name": reqData.name,
+        "number": reqData.number
+    }
+    
+    persons.push(person)
+    res.json(person)
 })
 
 app.get('/api/persons/:id', (req, res) => {
@@ -66,6 +79,10 @@ app.delete('/api/persons/:id', (req, res) => {
     console.log('del', persons)
     res.sendStatus(404).end
 })
+
+// helper functions
+
+const getRandomInt = max => Math.floor(Math.random() * max)
 
 const PORT = 3001
 app.listen(PORT, () => {
