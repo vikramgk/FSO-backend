@@ -52,14 +52,25 @@ app.get('/api/persons', (req, res) => {
 
 app.post('/api/persons', (req, res) => {
     const reqData = req.body
-    const person = {
-        "id": getRandomInt(MAX_ID),
-        "name": reqData.name,
-        "number": reqData.number
+    const personAlreadyExists = persons.find(person => person.name === reqData.name)
+
+    if (!reqData.name || !reqData.number) {
+        errorBody = { error: 'name and number must be not null' }
+        res.json(errorBody)
+    } else if (personAlreadyExists) {
+        errorBody = { error: 'name must be unique' }
+        res.json(errorBody)
+    } else {
+        const person = {
+            "id": getRandomInt(MAX_ID),
+            "name": reqData.name,
+            "number": reqData.number
+        }
+
+        persons.push(person)
+        res.json(person)
     }
-    
-    persons.push(person)
-    res.json(person)
+
 })
 
 app.get('/api/persons/:id', (req, res) => {
