@@ -1,8 +1,17 @@
+// imports
+
 const { response } = require('express')
 const express = require('express')
+var morgan = require('morgan')
+
 const app = express()
 
+// middleware
+
 app.use(express.json())
+app.use(morgan('tiny'))
+
+// constants
 
 const MAX_ID = 10000
 let persons = [
@@ -33,20 +42,20 @@ let persons = [
     }
 ]
 
+// routes
+
 app.get('/', (req, res) => {
     res.send(`<h1>how're ya doin' there bud</h1>`)
 })
 
 app.get('/info', (req, res) => {
     const currentDate = new Date()
-    console.log(currentDate)
     response_html = `<p>Phonebook has info for ${persons.length} people</p>
                     <p>${currentDate}</p>`
     res.send(response_html)
 })
 
 app.get('/api/persons', (req, res) => {
-    console.log('sup')
     res.json(persons)
 })
 
@@ -87,13 +96,20 @@ app.get('/api/persons/:id', (req, res) => {
 app.delete('/api/persons/:id', (req, res) => {
     const id = Number(req.params.id)
     persons = persons.filter(person => person.id !== id)
-    console.log('del', persons)
     res.sendStatus(404).end
 })
+
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
 
 // helper functions
 
 const getRandomInt = max => Math.floor(Math.random() * max)
+
+// listener
 
 const PORT = 3001
 app.listen(PORT, () => {
