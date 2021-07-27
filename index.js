@@ -9,6 +9,7 @@ const app = express()
 
 // middleware
 
+app.use(express.static('build'))
 app.use(express.json())
 
 morgan.token('body', (req) => {
