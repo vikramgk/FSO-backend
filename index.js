@@ -1,5 +1,6 @@
 // imports
-
+require('dotenv').config()
+const Person = require('./models/person')
 const { response } = require('express')
 const express = require('express')
 const cors = require('cors')
@@ -7,9 +8,10 @@ var morgan = require('morgan')
 
 const app = express()
 
+
 // middleware
 
-app.use(express.static('build'))
+// app.use(express.static('build'))
 app.use(express.json())
 
 morgan.token('body', (req) => {
@@ -23,33 +25,7 @@ app.use(cors())
 // constants
 
 const MAX_ID = 10000
-let persons = [
-    {
-        "id": 1,
-        "name": "Arto Hellas",
-        "number": "040-123456"
-    },
-    {
-        "id": 2,
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523"
-    },
-    {
-        "id": 3,
-        "name": "Dan Abramov",
-        "number": "12-43-234345"
-    },
-    {
-        "id": 4,
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122"
-    },
-    {
-        "id": 5,
-        "name": "hey",
-        "number": "39-23-6423122"
-    }
-]
+
 
 // routes
 
@@ -65,41 +41,50 @@ app.get('/info', (req, res) => {
 })
 
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({}).then(persons => res.json(persons))
 })
 
 app.post('/api/persons', (req, res) => {
     const reqData = req.body
-    const personAlreadyExists = persons.find(person => person.name === reqData.name)
+    console.log("coming in:", reqData)
 
-    if (!reqData.name || !reqData.number) {
-        errorBody = { error: 'name and number must be not null' }
-        res.json(errorBody)
-    } else if (personAlreadyExists) {
-        errorBody = { error: 'name must be unique' }
-        res.json(errorBody)
-    } else {
-        const person = {
-            "id": getRandomInt(MAX_ID),
-            "name": reqData.name,
-            "number": reqData.number
-        }
-
-        persons.push(person)
-        res.json(person)
+    if (reqData === undefined) {
+        return res.status(400).json({ error: 'content missing' })
     }
+
+    const person = new Person({
+        name: reqData.name,
+        number: reqData.number
+    })
+
+    person.save().then(savedPerson => {
+        res.json(savedPerson)
+        mongoose.connection.close()
+    })
+
+    // const personAlreadyExists = persons.find(person => person.name === reqData.name)
+
+    // if (!reqData.name || !reqData.number) {
+    //     errorBody = { error: 'name and number must be not null' }
+    //     res.json(errorBody)
+    // } else if (personAlreadyExists) {
+    //     errorBody = { error: 'name must be unique' }
+    //     res.json(errorBody)
+    // } else {
+    //     const person = {
+    //         "id": getRandomInt(MAX_ID),
+    //         "name": reqData.name,
+    //         "number": reqData.number
+    //     }
+
+    //     persons.push(person)
+    //     res.json(person)
+    // }
 
 })
 
 app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    const person = persons.find(person => person.id === id)
-
-    if (!person) {
-        res.sendStatus(404).end
-    } else {
-        res.json(person)
-    }
+    Person.findById(req.params.id).then(person => res.json(person))
 })
 
 app.delete('/api/persons/:id', (req, res) => {
