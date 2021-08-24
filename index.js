@@ -84,13 +84,19 @@ app.post('/api/persons', (req, res) => {
 })
 
 app.get('/api/persons/:id', (req, res) => {
-    Person.findById(req.params.id).then(person => res.json(person))
+    Person.findById(req.params.id)
+        .then(person => res.json(person))
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    persons = persons.filter(person => person.id !== id)
-    res.sendStatus(404).end
+app.delete('/api/persons/:id', (req, res, next) => {
+    Person.findByIdAndRemove(req.params.id)
+        .then(result => {
+            res.status(204).end()
+        })
+        .catch(error => {
+            next(error)
+        })
+
 })
 
 const unknownEndpoint = (request, response) => {
