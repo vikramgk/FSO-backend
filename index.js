@@ -40,11 +40,13 @@ app.get('/info', (req, res) => {
     res.send(response_html)
 })
 
-app.get('/api/persons', (req, res) => {
-    Person.find({}).then(persons => res.json(persons))
+app.get('/api/persons', (req, res, error) => {
+    Person.find({})
+        .then(persons => res.json(persons))
+        .catch(error => next(error))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const reqData = req.body
     console.log("coming in:", reqData)
 
@@ -57,35 +59,18 @@ app.post('/api/persons', (req, res) => {
         number: reqData.number
     })
 
-    person.save().then(savedPerson => {
+    person.save()
+        .then(savedPerson => {
         res.json(savedPerson)
         mongoose.connection.close()
     })
-
-    // const personAlreadyExists = persons.find(person => person.name === reqData.name)
-
-    // if (!reqData.name || !reqData.number) {
-    //     errorBody = { error: 'name and number must be not null' }
-    //     res.json(errorBody)
-    // } else if (personAlreadyExists) {
-    //     errorBody = { error: 'name must be unique' }
-    //     res.json(errorBody)
-    // } else {
-    //     const person = {
-    //         "id": getRandomInt(MAX_ID),
-    //         "name": reqData.name,
-    //         "number": reqData.number
-    //     }
-
-    //     persons.push(person)
-    //     res.json(person)
-    // }
-
+    .catch(error => next(error))
 })
 
-app.get('/api/persons/:id', (req, res) => {
+app.get('/api/persons/:id', (req, res, next) => {
     Person.findById(req.params.id)
         .then(person => res.json(person))
+        .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (req, res, next) => {
@@ -96,8 +81,10 @@ app.delete('/api/persons/:id', (req, res, next) => {
         .catch(error => {
             next(error)
         })
-
 })
+
+
+// middleware handling
 
 const unknownEndpoint = (request, response) => {
     response.status(404).send({ error: 'unknown endpoint' })
@@ -105,9 +92,24 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint)
 
+const errorHandler = (error, req, res, next) => {
+    console.error(error.message)
+
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'malformmated id' })
+    }
+
+    // pass on to default error handler if not a cast error
+    next(error)
+}
+
+app.use(errorHandler)
+
+
 // helper functions
 
 const getRandomInt = max => Math.floor(Math.random() * max)
+
 
 // listener
 
