@@ -50,21 +50,44 @@ app.post('/api/persons', (req, res, next) => {
     const reqData = req.body
     console.log("coming in:", reqData)
 
+    // handle empty request body
     if (reqData === undefined) {
         return res.status(400).json({ error: 'content missing' })
     }
 
+    // create new person object, id is added automatically by mongo
     const person = new Person({
         name: reqData.name,
         number: reqData.number
     })
 
+    // save the person to the db and send back the new person
     person.save()
         .then(savedPerson => {
         res.json(savedPerson)
-        mongoose.connection.close()
+        // mongoose.connection.close()
     })
     .catch(error => next(error))
+
+    
+    // const personAlreadyExists = persons.find(person => person.name === reqData.name)
+
+    // if (!reqData.name || !reqData.number) {
+    //     errorBody = { error: 'name and number must be not null' }
+    //     res.json(errorBody)
+    // } else if (personAlreadyExists) {
+    //     errorBody = { error: 'name must be unique' }
+    //     res.json(errorBody)
+    // } else {
+    //     const person = {
+    //         "id": getRandomInt(MAX_ID),
+    //         "name": reqData.name,
+    //         "number": reqData.number
+    //     }
+
+    //     persons.push(person)
+    //     res.json(person)
+    // }
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -83,11 +106,24 @@ app.delete('/api/persons/:id', (req, res, next) => {
         })
 })
 
+app.put('/api/persons/:id', (req, res, next) => {
+    console.log("put", req.body)
+    Person.findOneAndUpdate(
+        {"name": req.body.name}, // filter
+        {"number": req.body.number}, // update
+        {new: true})
+    .then(result => {
+        delete result.__v
+        console.log("recv", result.__v)
+        res.json(result)
+    })
+})
+
 
 // middleware handling
 
-const unknownEndpoint = (request, response) => {
-    response.status(404).send({ error: 'unknown endpoint' })
+const unknownEndpoint = (req, res) => {
+    res.status(404).send({ error: 'unknown endpoint' })
 }
 
 app.use(unknownEndpoint)
