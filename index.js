@@ -63,11 +63,8 @@ app.post('/api/persons', (req, res, next) => {
 
     // save the person to the db and send back the new person
     person.save()
-        .then(savedPerson => {
-        res.json(savedPerson)
-        // mongoose.connection.close()
-    })
-    .catch(error => next(error))
+        .then(savedPerson => res.json(savedPerson))
+        .catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -89,14 +86,14 @@ app.delete('/api/persons/:id', (req, res, next) => {
 app.put('/api/persons/:id', (req, res, next) => {
     console.log("put", req.body)
     Person.findOneAndUpdate(
-        {"name": req.body.name}, // filter
-        {"number": req.body.number}, // update
-        {new: true})
-    .then(result => {
-        delete result.__v
-        console.log("recv", result.__v)
-        res.json(result)
-    })
+        { "name": req.body.name }, // filter
+        { "number": req.body.number }, // update
+        { new: true })
+        .then(result => {
+            delete result.__v
+            console.log("recv", result.__v)
+            res.json(result)
+        })
 })
 
 
