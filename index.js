@@ -22,22 +22,22 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :b
 app.use(cors())
 
 
-// constants
-
-const MAX_ID = 10000
-
-
 // routes
 
 app.get('/', (req, res) => {
-    res.send(`<h1>how're ya doin' there bud</h1>`)
+    res.send('<h1>how\'re ya doin\' there bud</h1>')
 })
 
-app.get('/info', (req, res) => {
+app.get('/info', (req, res, next) => {
     const currentDate = new Date()
-    response_html = `<p>Phonebook has info for ${persons.length} people</p>
-                    <p>${currentDate}</p>`
-    res.send(response_html)
+    Person.find({})
+        .then(persons => {
+            const response_html = `<p>Phonebook has info for ${persons.length} people</p>
+            <p>${currentDate}</p>`
+            res.send(response_html)
+        })
+        .catch(error => next(error))
+
 })
 
 app.get('/api/persons', (req, res, next) => {
@@ -48,7 +48,7 @@ app.get('/api/persons', (req, res, next) => {
 
 app.post('/api/persons', (req, res, next) => {
     const reqData = req.body
-    console.log("coming in:", reqData)
+    console.log('coming in:', reqData)
 
     // handle empty request body
     if (reqData === undefined) {
@@ -57,7 +57,7 @@ app.post('/api/persons', (req, res, next) => {
 
     // create new person object, id is added automatically by mongo
     const person = new Person({
-        name: reqData.name, 
+        name: reqData.name,
         number: reqData.number
     })
 
@@ -79,7 +79,7 @@ app.get('/api/persons/:id', (req, res, next) => {
 
 app.delete('/api/persons/:id', (req, res, next) => {
     Person.findByIdAndRemove(req.params.id)
-        .then(result => {
+        .then(() => {
             res.status(204).end()
         })
         .catch(error => {
@@ -87,19 +87,19 @@ app.delete('/api/persons/:id', (req, res, next) => {
         })
 })
 
-app.put('/api/persons/:id', (req, res, next) => {
-    console.log("put", req.body)
+app.put('/api/persons/:id', (req, res) => {
+    console.log('put', req.body)
     Person.findOneAndUpdate(
-        { "name": req.body.name }, // filter
-        { "number": req.body.number }, // update
+        { 'name': req.body.name }, // filter
+        { 'number': req.body.number }, // update
         { new: true })
         .then(result => {
             delete result.__v
-            console.log("recv", result.__v)
+            console.log('recv', result.__v)
             res.json(result)
         })
         .catch(error => {
-            console.log("put", error)
+            console.log('put', error)
             res.status(400).json(error)
         })
 })
@@ -129,7 +129,6 @@ app.use(errorHandler)
 
 // helper functions
 
-const getRandomInt = max => Math.floor(Math.random() * max)
 
 
 // listener
