@@ -11,7 +11,7 @@ const app = express()
 
 // middleware
 
-// app.use(express.static('build'))
+app.use(express.static('build'))
 app.use(express.json())
 
 morgan.token('body', (req) => {
@@ -40,7 +40,7 @@ app.get('/info', (req, res) => {
     res.send(response_html)
 })
 
-app.get('/api/persons', (req, res, error) => {
+app.get('/api/persons', (req, res, next) => {
     Person.find({})
         .then(persons => res.json(persons))
         .catch(error => next(error))
