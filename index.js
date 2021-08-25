@@ -57,14 +57,18 @@ app.post('/api/persons', (req, res, next) => {
 
     // create new person object, id is added automatically by mongo
     const person = new Person({
-        name: reqData.name,
+        name: reqData.name, 
         number: reqData.number
     })
 
     // save the person to the db and send back the new person
     person.save()
         .then(savedPerson => res.json(savedPerson))
-        .catch(error => next(error))
+        .catch(error => {
+            console.log(error)
+            res.status(400).json(error)
+            next(error)
+        })
 })
 
 app.get('/api/persons/:id', (req, res, next) => {
@@ -93,6 +97,10 @@ app.put('/api/persons/:id', (req, res, next) => {
             delete result.__v
             console.log("recv", result.__v)
             res.json(result)
+        })
+        .catch(error => {
+            console.log("put", error)
+            res.status(400).json(error)
         })
 })
 

@@ -8,6 +8,7 @@ const uniqueValidator = require('mongoose-unique-validator');
 const url = process.env.MONGODB_URI
 
 console.log('connecting to', url)
+mongoose.set('runValidators', true)
 
 mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false, useCreateIndex: true })
     .then(result => {
@@ -18,8 +19,17 @@ mongoose.connect(url, { useNewUrlParser: true, useUnifiedTopology: true, useFind
     })
 
 const personSchema = new mongoose.Schema({
-    name: { type: String, required: true, unique: true },
-    number: { type: String, required: true },
+    name: {
+        type: String,
+        minLength: [3, 'Too few characters'],
+        required: true,
+        unique: true
+    },
+    number: {
+        type: String,
+        minLength: [8, 'Too few numbers'],
+        required: true
+    },
 })
 
 personSchema.plugin(uniqueValidator)
